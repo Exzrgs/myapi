@@ -11,12 +11,12 @@ import (
 func main() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/hello", handlers.HelloHandler)
-	r.HandleFunc("/article", handlers.PostArticleHandler)
-	r.HandleFunc("/article/list", handlers.ArticleListHandler)
-	r.HandleFunc("/article/ID", handlers.ArticleDetailHandler)
-	r.HandleFunc("/article/nice", handlers.PostNiceHandler)
-	r.HandleFunc("/comment", handlers.CommentHandler)
+	r.HandleFunc("/hello", handlers.HelloHandler).Methods(http.MethodGet)
+	r.HandleFunc("/article", handlers.PostArticleHandler).Methods(http.MethodPost)
+	r.HandleFunc("/article/list", handlers.ArticleListHandler).Methods(http.MethodGet)
+	r.HandleFunc("/article/ID", handlers.ArticleDetailHandler).Methods(http.MethodGet)
+	r.HandleFunc("/article/nice", handlers.PostNiceHandler).Methods(http.MethodPost)
+	r.HandleFunc("/comment", handlers.CommentHandler).Methods(http.MethodPost)
 
 	log.Println("running")
 	log.Fatal(http.ListenAndServe(":8080", r))
