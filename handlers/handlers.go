@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/Exzrgs/myapi/models"
 )
@@ -15,6 +17,26 @@ func HelloHandler(w http.ResponseWriter, req *http.Request) {
 // ブログ記事の投稿をする
 func PostArticleHandler(w http.ResponseWriter, req *http.Request) {
 	// io.WriteString(w, "Posting Article...\n")
+
+	// var reqBodybuffer []byte
+
+	length, err := strconv.Atoi(req.Header.Get("Content-Length"))
+
+	if err != nil {
+		http.Error(w, "cannot get content length\n", http.StatusBadRequest)
+		return
+	}
+
+	reqBodybuffer := make([]byte, length)
+
+	if _, err := req.Body.Read(reqBodybuffer); !errors.Is(err, io.EOF) {
+		http.Error(w, "fail to get request body\n", http.StatusBadRequest)
+		return
+	}
+
+	defer req.Body.Close()
+
+	///////////////////////////////
 
 	article := models.Article1
 	jsonData, err := json.Marshal(article)
