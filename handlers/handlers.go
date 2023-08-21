@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/Exzrgs/myapi/models"
 )
@@ -16,35 +14,51 @@ func HelloHandler(w http.ResponseWriter, req *http.Request) {
 
 // ブログ記事の投稿をする
 func PostArticleHandler(w http.ResponseWriter, req *http.Request) {
-	// io.WriteString(w, "Posting Article...\n")
+	/*
+		length, err := strconv.Atoi(req.Header.Get("Content-Length"))
 
-	// var reqBodybuffer []byte
+		if err != nil {
+			http.Error(w, "cannot get content length\n", http.StatusBadRequest)
+			return
+		}
 
-	length, err := strconv.Atoi(req.Header.Get("Content-Length"))
+		reqBodybuffer := make([]byte, length)
 
-	if err != nil {
-		http.Error(w, "cannot get content length\n", http.StatusBadRequest)
-		return
+		if _, err := req.Body.Read(reqBodybuffer); !errors.Is(err, io.EOF) {
+			http.Error(w, "fail to get request body\n", http.StatusBadRequest)
+			return
+		}
+
+		defer req.Body.Close()
+	*/
+
+	var reqArticle models.Article
+
+	/*
+		if err := json.Unmarshal(reqBodybuffer, &reqArticle); !errors.Is(err, io.EOF) {
+			http.Error(w, "fail to decode json\n", http.StatusInternalServerError)
+		}
+	*/
+
+	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
+		http.Error(w, "fail to decode json\n", http.StatusInternalServerError)
 	}
-
-	reqBodybuffer := make([]byte, length)
-
-	if _, err := req.Body.Read(reqBodybuffer); !errors.Is(err, io.EOF) {
-		http.Error(w, "fail to get request body\n", http.StatusBadRequest)
-		return
-	}
-
-	defer req.Body.Close()
 
 	///////////////////////////////
 
-	article := models.Article1
-	jsonData, err := json.Marshal(article)
+	article := reqArticle
+	/*
+		jsonData, err := json.Marshal(article)
 
-	if err != nil {
-		http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-	} else {
-		w.Write(jsonData)
+		if err != nil {
+			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
+		} else {
+			w.Write(jsonData)
+		}
+	*/
+
+	if err := json.NewEncoder(w).Encode(article); err != nil {
+		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
 
@@ -76,12 +90,18 @@ func ArticleListHandler(w http.ResponseWriter, req *http.Request) {
 	ls := []models.Article{}
 	ls = append(ls, models.Article1, models.Article2)
 
-	jsonData, err := json.Marshal(ls)
+	/*
+		jsonData, err := json.Marshal(ls)
 
-	if err != nil {
-		http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-	} else {
-		w.Write(jsonData)
+		if err != nil {
+			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
+		} else {
+			w.Write(jsonData)
+		}
+	*/
+
+	if err := json.NewEncoder(w).Encode(ls); err != nil {
+		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
 
@@ -101,41 +121,55 @@ func ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
 
 	article := models.Article1
 
-	jsonData, err := json.Marshal(article)
+	/*
+		jsonData, err := json.Marshal(article)
 
-	if err != nil {
-		http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-	} else {
-		w.Write(jsonData)
+		if err != nil {
+			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
+		} else {
+			w.Write(jsonData)
+		}
+	*/
+
+	if err := json.NewEncoder(w).Encode(article); err != nil {
+		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
 
 // 記事にいいねをつける
 func PostNiceHandler(w http.ResponseWriter, req *http.Request) {
-	// io.WriteString(w, "Posting Nice...\n")
-
 	article := models.Article1
 
-	jsonData, err := json.Marshal(article)
+	/*
+		jsonData, err := json.Marshal(article)
 
-	if err != nil {
-		http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-	} else {
-		w.Write(jsonData)
+		if err != nil {
+			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
+		} else {
+			w.Write(jsonData)
+		}
+	*/
+
+	if err := json.NewEncoder(w).Encode(article); err != nil {
+		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
 
 // 記事にコメントをつける
 func CommentHandler(w http.ResponseWriter, req *http.Request) {
-	// io.WriteString(w, "Posting Comment...\n")
-
 	comment := models.Comment1
 
-	jsonData, err := json.Marshal(comment)
+	/*
+		jsonData, err := json.Marshal(comment)
 
-	if err != nil {
-		http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-	} else {
-		w.Write(jsonData)
+		if err != nil {
+			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
+		} else {
+			w.Write(jsonData)
+		}
+	*/
+
+	if err := json.NewEncoder(w).Encode(comment); err != nil {
+		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
