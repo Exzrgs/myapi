@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/Exzrgs/myapi/models"
+	"github.com/Exzrgs/myapi/services"
+	"github.com/gorilla/mux"
 )
 
 func HelloHandler(w http.ResponseWriter, req *http.Request) {
@@ -14,122 +18,69 @@ func HelloHandler(w http.ResponseWriter, req *http.Request) {
 
 // ブログ記事の投稿をする
 func PostArticleHandler(w http.ResponseWriter, req *http.Request) {
-	/*
-		length, err := strconv.Atoi(req.Header.Get("Content-Length"))
-
-		if err != nil {
-			http.Error(w, "cannot get content length\n", http.StatusBadRequest)
-			return
-		}
-
-		reqBodybuffer := make([]byte, length)
-
-		if _, err := req.Body.Read(reqBodybuffer); !errors.Is(err, io.EOF) {
-			http.Error(w, "fail to get request body\n", http.StatusBadRequest)
-			return
-		}
-
-		defer req.Body.Close()
-	*/
-
 	var reqArticle models.Article
-
-	/*
-		if err := json.Unmarshal(reqBodybuffer, &reqArticle); !errors.Is(err, io.EOF) {
-			http.Error(w, "fail to decode json\n", http.StatusInternalServerError)
-		}
-	*/
 
 	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
 		http.Error(w, "fail to decode json\n", http.StatusInternalServerError)
 	}
 
-	///////////////////////////////
+	resArticle, err := services.PostArticleService(reqArticle)
+	if err != nil {
+		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
+		return
+	}
 
-	article := reqArticle
-	/*
-		jsonData, err := json.Marshal(article)
-
-		if err != nil {
-			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-		} else {
-			w.Write(jsonData)
-		}
-	*/
-
-	if err := json.NewEncoder(w).Encode(article); err != nil {
+	if err := json.NewEncoder(w).Encode(resArticle); err != nil {
 		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
 
 // ブログ記事の一覧を取得
 func ArticleListHandler(w http.ResponseWriter, req *http.Request) {
-	/*
-		queryMap := req.URL.Query()
+	queryMap := req.URL.Query()
 
-		var page int
+	var page int
 
-		p, ok := queryMap["page"]
+	p, ok := queryMap["page"]
 
-		if ok && len(p) > 0 {
-			var err error
+	if ok && len(p) > 0 {
+		var err error
 
-			page, err = strconv.Atoi(p[0])
-
-			if err != nil {
-				http.Error(w, "Invalid query parameter", http.StatusBadRequest)
-				return
-			}
-		} else {
-			page = 1
-		}
-
-		resString := fmt.Sprintf("Article List (page %d)\n", page)
-		io.WriteString(w, resString)
-	*/
-	ls := []models.Article{}
-	ls = append(ls, models.Article1, models.Article2)
-
-	/*
-		jsonData, err := json.Marshal(ls)
+		page, err = strconv.Atoi(p[0])
 
 		if err != nil {
-			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-		} else {
-			w.Write(jsonData)
+			http.Error(w, "Invalid query parameter", http.StatusBadRequest)
+			return
 		}
-	*/
+	} else {
+		page = 1
+	}
 
-	if err := json.NewEncoder(w).Encode(ls); err != nil {
+	articleList, err := services.GetArticleListService(page)
+	if err != nil {
+		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(articleList); err != nil {
 		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
 
 // 記事ナンバーID番の登校データを取得
 func ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
-	/*
-		articleID, err := strconv.Atoi(mux.Vars(req)["id"])
+	articleID, err := strconv.Atoi(mux.Vars(req)["id"])
+	if err != nil {
+		http.Error(w, "Invalid query parameter", http.StatusBadRequest)
+		return
+	}
 
-		if err != nil {
-			http.Error(w, "Invalid query parameter", http.StatusBadRequest)
-			return
-		}
-
-		resString := fmt.Sprintf("Article No.%d\n", articleID)
-		io.WriteString(w, resString)
-	*/
-
-	article := models.Article1
-
-	/*
-		jsonData, err := json.Marshal(article)
-
-		if err != nil {
-			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-		} else {
-			w.Write(jsonData)
-		}
-	*/
+	article, err := services.GetArticleService(articleID)
+	if err != nil {
+		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
+		return
+	}
 
 	if err := json.NewEncoder(w).Encode(article); err != nil {
 		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
@@ -138,38 +89,41 @@ func ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
 
 // 記事にいいねをつける
 func PostNiceHandler(w http.ResponseWriter, req *http.Request) {
-	article := models.Article1
+	var reqArticle models.Article
+	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
+		http.Error(w, "fail to decode json\n", http.StatusInternalServerError)
+	}
+	// デバッグ用
+	// fmt.Printf("reqArticle is %+v in PostNiceHandler\n", reqArticle)
 
-	/*
-		jsonData, err := json.Marshal(article)
+	resArticle, err := services.PostNiceService(reqArticle)
+	if err != nil {
+		fmt.Println("error at PostNiceService in PostNiceHandler")
+		fmt.Println(err)
+		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
+		return
+	}
 
-		if err != nil {
-			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-		} else {
-			w.Write(jsonData)
-		}
-	*/
-
-	if err := json.NewEncoder(w).Encode(article); err != nil {
+	if err := json.NewEncoder(w).Encode(resArticle); err != nil {
 		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }
 
 // 記事にコメントをつける
 func CommentHandler(w http.ResponseWriter, req *http.Request) {
-	comment := models.Comment1
+	var reqComment models.Comment
 
-	/*
-		jsonData, err := json.Marshal(comment)
+	if err := json.NewDecoder(req.Body).Decode(&reqComment); err != nil {
+		http.Error(w, "fail to decode json\n", http.StatusInternalServerError)
+	}
 
-		if err != nil {
-			http.Error(w, "fail to encode to json\n", http.StatusInternalServerError)
-		} else {
-			w.Write(jsonData)
-		}
-	*/
+	resComment, err := services.PostCommentService(reqComment)
+	if err != nil {
+		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
+		return
+	}
 
-	if err := json.NewEncoder(w).Encode(comment); err != nil {
+	if err := json.NewEncoder(w).Encode(resComment); err != nil {
 		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
 	}
 }

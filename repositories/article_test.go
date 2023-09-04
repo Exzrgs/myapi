@@ -5,7 +5,7 @@ import (
 
 	"github.com/Exzrgs/myapi/models"
 	"github.com/Exzrgs/myapi/repositories"
-	"github.com/Exzrgs/myapi/testdata"
+	"github.com/Exzrgs/myapi/repositories/testdata"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -18,10 +18,10 @@ func TestSelectArticleDetails(t *testing.T) {
 	}{
 		{
 			testTitle: "subtest1",
-			expected: testdata.ArticleTestData[0]
+			expected:  testdata.ArticleTestData[0],
 		}, {
 			testTitle: "subtest2",
-			expected: testdata.ArticleTestData[1]
+			expected:  testdata.ArticleTestData[1],
 		},
 	}
 
@@ -34,19 +34,19 @@ func TestSelectArticleDetails(t *testing.T) {
 			}
 
 			if got.ID != test.expected.ID {
-				t.Errorf("get %d but want %d\n", got.ID, test.expected.ID)
+				t.Errorf("ID is expected %d but got %d\n", test.expected.ID, got.ID)
 			}
 			if got.Title != test.expected.Title {
-				t.Errorf("get %s but want %s\n", got.Title, test.expected.Title)
+				t.Errorf("got %s but want %s\n", got.Title, test.expected.Title)
 			}
 			if got.Contents != test.expected.Contents {
-				t.Errorf("get %s but want %s\n", got.Contents, test.expected.Contents)
+				t.Errorf("got %s but want %s\n", got.Contents, test.expected.Contents)
 			}
 			if got.UserName != test.expected.UserName {
-				t.Errorf("get %s but want %s\n", got.UserName, test.expected.UserName)
+				t.Errorf("got %s but want %s\n", got.UserName, test.expected.UserName)
 			}
 			if got.NiceNum != test.expected.NiceNum {
-				t.Errorf("get %d but want %d\n", got.NiceNum, test.expected.NiceNum)
+				t.Errorf("got %d but want %d\n", got.NiceNum, test.expected.NiceNum)
 			}
 		})
 	}
@@ -72,7 +72,7 @@ func TestInsertArticle(t *testing.T) {
 		UserName: "saki",
 	}
 
-	expectedNum := 3
+	expectedNum := len(testdata.ArticleTestData) + 1
 
 	got, err := repositories.InsertArticle(testDB, article)
 	if err != nil {
@@ -80,7 +80,7 @@ func TestInsertArticle(t *testing.T) {
 	}
 
 	if got.ID != expectedNum {
-		t.Errorf("want %d but got %d\n", expectedNum, got.ID)
+		t.Errorf("ArticleID is expected %d but got %d\n", expectedNum, got.ID)
 	}
 
 	t.Cleanup(func() {
@@ -100,43 +100,41 @@ func TestUpdateNiceNum(t *testing.T) {
 	}{
 		{
 			testTitle: "subtest1",
-			expected: models.Article{
-				ID:       1,
-				Title:    "firstPost",
-				Contents: "This is my first blog",
-				UserName: "saki",
-				NiceNum:  3,
-			},
+			expected:  testdata.ArticleTestData[0],
 		}, {
 			testTitle: "subtest2",
-			expected: models.Article{
-				ID:       2,
-				Title:    "second",
-				Contents: "This is second blog",
-				UserName: "saki",
-				NiceNum:  2,
-			},
+			expected:  testdata.ArticleTestData[1],
 		},
 	}
 
-	for _, test range tests{
-		got, err := repositories.UpdateNiceNum(testDB, test.ID)
+	for _, test := range tests {
+		before, err := repositories.SelectArticleDetail(testDB, test.expected.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if got.NiceNum != test.expected.NiceNum{
-			t.Errorf("want %d but got %d\n", test.expected.NiceNum, got.NiceNum)
+		err = repositories.UpdateNiceNum(testDB, test.expected.ID)
+		if err != nil {
+			t.Fatal(err)
 		}
 
-		t.Cleanup(func(){
+		after, err := repositories.SelectArticleDetail(testDB, test.expected.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if after.NiceNum != before.NiceNum+1 {
+			t.Errorf("want %d but got %d\n", test.expected.NiceNum+1, after.NiceNum)
+		}
+
+		t.Cleanup(func() {
 			const sqlStr = `
 			update articles
 			set nice = ?
 			where article_id = ?;
 			`
 
-			testDB.Exec(sqlStr, test.expected.NiceNum-1, test.expected.ID)
+			testDB.Exec(sqlStr, test.expected.NiceNum, test.expected.ID)
 		})
 	}
 }

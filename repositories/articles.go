@@ -40,8 +40,8 @@ func SelectArticleList(db *sql.DB, page int) ([]models.Article, error) {
 	`
 
 	rows, err := db.Query(sqlStr, articleNumPerPage, (page-1)*articleNumPerPage)
-
 	if err != nil {
+		fmt.Println("error at Query in SelectArticleList")
 		return nil, err
 	}
 
@@ -68,6 +68,7 @@ func SelectArticleDetail(db *sql.DB, articleID int) (models.Article, error) {
 
 	row := db.QueryRow(sqlStr, articleID)
 	if err := row.Err(); err != nil {
+		fmt.Println("error at QueryRow in SelectArticleDetail")
 		return models.Article{}, err
 	}
 
@@ -76,6 +77,7 @@ func SelectArticleDetail(db *sql.DB, articleID int) (models.Article, error) {
 
 	err := row.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &createdTime)
 	if err != nil {
+		fmt.Println("error at row.Scan in SelectArticleDetail")
 		return models.Article{}, err
 	}
 
@@ -100,8 +102,8 @@ func UpdateNiceNum(db *sql.DB, articleID int) error {
 	`
 
 	tx, err := db.Begin()
-
 	if err != nil {
+		fmt.Println("error at bigen tx in UpdateNiceNum")
 		fmt.Println(err)
 		return err
 	}
@@ -110,22 +112,30 @@ func UpdateNiceNum(db *sql.DB, articleID int) error {
 	row := tx.QueryRow(sqlGetNice, articleID)
 	if err := row.Err(); err != nil {
 		tx.Rollback()
+		fmt.Println("error at getting query in UpdateNiceNum")
 		return err
 	}
 
 	err = row.Scan(&nice)
 	if err != nil {
 		tx.Rollback()
+		fmt.Println("error at scanning row in UpdateNiceNum")
+		/* デバッグ用
+		fmt.Printf("nice is %d\n", nice)
+		fmt.Printf("articleID is %d\n", articleID)
+		*/
 		return err
 	}
 
 	_, err = tx.Exec(sqlUpdateNice, nice+1, articleID)
 	if err != nil {
 		tx.Rollback()
+		fmt.Println("error at exec niceNum in UpdateNiceNum")
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
+		fmt.Println("error at commit tx in UpdateNiceNum")
 		return err
 	}
 
