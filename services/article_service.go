@@ -7,21 +7,14 @@ import (
 	"github.com/Exzrgs/myapi/repositories"
 )
 
-func GetArticleService(ID int) (models.Article, error) {
-	db, err := connectDB()
-	if err != nil {
-		fmt.Println("error at connectDB in GetArticleService")
-		return models.Article{}, err
-	}
-	defer db.Close()
-
-	article, err := repositories.SelectArticleDetail(db, ID)
+func (s *MyAppService) GetArticleService(ID int) (models.Article, error) {
+	article, err := repositories.SelectArticleDetail(s.db, ID)
 	if err != nil {
 		fmt.Println("error at SelectArticleDetail in GetArticleService")
 		return models.Article{}, err
 	}
 
-	comments, err := repositories.SelectCommentList(db, ID)
+	comments, err := repositories.SelectCommentList(s.db, ID)
 	if err != nil {
 		fmt.Println("error at SelectCommentList in GetArticleService")
 		return models.Article{}, err
@@ -32,14 +25,8 @@ func GetArticleService(ID int) (models.Article, error) {
 	return article, nil
 }
 
-func PostArticleService(reqArticle models.Article) (models.Article, error) {
-	db, err := connectDB()
-	if err != nil {
-		fmt.Println("error at connectDB in PostArticleService")
-		return models.Article{}, err
-	}
-
-	resArticle, err := repositories.InsertArticle(db, reqArticle)
+func (s *MyAppService) PostArticleService(reqArticle models.Article) (models.Article, error) {
+	resArticle, err := repositories.InsertArticle(s.db, reqArticle)
 	if err != nil {
 		fmt.Println("error at InsertArticle in PostArticleService")
 		return models.Article{}, err
@@ -48,14 +35,8 @@ func PostArticleService(reqArticle models.Article) (models.Article, error) {
 	return resArticle, nil
 }
 
-func GetArticleListService(page int) ([]models.Article, error) {
-	db, err := connectDB()
-	if err != nil {
-		fmt.Println("error at connectDB in GetArticleListService")
-		return nil, err
-	}
-
-	articleList, err := repositories.SelectArticleList(db, page)
+func (s *MyAppService) GetArticleListService(page int) ([]models.Article, error) {
+	articleList, err := repositories.SelectArticleList(s.db, page)
 	if err != nil {
 		fmt.Println("error at SelectArticleList in GetArticleListService")
 		return nil, err
@@ -64,23 +45,17 @@ func GetArticleListService(page int) ([]models.Article, error) {
 	return articleList, nil
 }
 
-func PostNiceService(article models.Article) (models.Article, error) {
-	db, err := connectDB()
-	if err != nil {
-		fmt.Println("error at connectDB in PostNiceService")
-		return models.Article{}, err
-	}
-
+func (s *MyAppService) PostNiceService(article models.Article) (models.Article, error) {
 	// デバッグ用
 	// fmt.Printf("reqArticle is %+v in PostNiceService\n", article)
 
-	err = repositories.UpdateNiceNum(db, article.ID)
+	err := repositories.UpdateNiceNum(s.db, article.ID)
 	if err != nil {
 		fmt.Println("error at UpdateNiceNum in PostNiceService")
 		return models.Article{}, err
 	}
 
-	newArticle, err := repositories.SelectArticleDetail(db, article.ID)
+	newArticle, err := repositories.SelectArticleDetail(s.db, article.ID)
 	if err != nil {
 		fmt.Println("error at SelectArticleDetail in PostNiceService")
 		return models.Article{}, err
