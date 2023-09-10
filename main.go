@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Exzrgs/myapi/controllers"
-	"github.com/Exzrgs/myapi/services"
-	"github.com/gorilla/mux"
+	"github.com/Exzrgs/myapi/api"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -35,16 +35,7 @@ func main() {
 		return
 	}
 
-	ser := services.NewMyAppService(db)
-	con := controllers.NewMyAppController(ser)
-
-	r := mux.NewRouter()
-
-	r.HandleFunc("/article", con.PostArticleHandler).Methods(http.MethodPost)
-	r.HandleFunc("/article/list", con.ArticleListHandler).Methods(http.MethodGet)
-	r.HandleFunc("/article/{id:[0-9]+}", con.ArticleDetailHandler).Methods(http.MethodGet)
-	r.HandleFunc("/article/nice", con.PostNiceHandler).Methods(http.MethodPost)
-	r.HandleFunc("/comment", con.CommentHandler).Methods(http.MethodPost)
+	r := api.NewRouter(db)
 
 	log.Println("running")
 	log.Fatal(http.ListenAndServe(":8080", r))
