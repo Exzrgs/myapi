@@ -30,7 +30,5 @@ func (c *CommentController) CommentHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(resComment); err != nil {
-		http.Error(w, "fail to encode json\n", http.StatusInternalServerError)
-	}
+	json.NewEncoder(w).Encode(resComment)
 }

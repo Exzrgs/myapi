@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Exzrgs/myapi/api"
+	"github.com/Exzrgs/myapi/apperrors"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -29,6 +30,8 @@ func connectDB() (*sql.DB, error) {
 }
 
 func main() {
+	fmt.Println(apperrors.MyAppError{ErrCode: apperrors.BadParameter, Message: "a", Err: sql.ErrNoRows})
+
 	db, err := connectDB()
 	if err != nil {
 		log.Println("fail to connect db")

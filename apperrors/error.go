@@ -14,6 +14,6 @@ func (myErr *MyAppError) Unwrap() error {
 	return myErr.Err
 }
 
-func (code ErrCode) Wrap(err error, message string) *MyAppError {
+func (code ErrCode) Wrap(err error, message string) error {
 	return &MyAppError{ErrCode: code, Message: message, Err: err}
 }

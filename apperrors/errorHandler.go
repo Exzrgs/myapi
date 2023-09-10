@@ -8,7 +8,7 @@ import (
 
 func ErrorHandler(w http.ResponseWriter, req *http.Request, err error) {
 	var appErr *MyAppError
-	if !errors.As(err, appErr) {
+	if !errors.As(err, &appErr) {
 		appErr = &MyAppError{
 			ErrCode: Unknown,
 			Message: "internal process failed",
@@ -26,6 +26,8 @@ func ErrorHandler(w http.ResponseWriter, req *http.Request, err error) {
 	default:
 		statusCode = http.StatusInternalServerError
 	}
+
+	// fmt.Println(appErr)
 
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(appErr)
