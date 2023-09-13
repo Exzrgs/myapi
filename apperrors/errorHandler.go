@@ -27,7 +27,8 @@ func ErrorHandler(w http.ResponseWriter, req *http.Request, err error) {
 		statusCode = http.StatusInternalServerError
 	}
 
-	// fmt.Println(appErr)
+	// デバッグ用
+	// fmt.Println(*appErr)
 
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(appErr)
