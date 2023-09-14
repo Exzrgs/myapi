@@ -11,24 +11,62 @@ import (
 )
 
 func (s *MyAppService) GetArticleService(ID int) (models.Article, error) {
-	article, err := repositories.SelectArticleDetail(s.db, ID)
-	if err != nil {
-		fmt.Println("error at SelectArticleDetail in GetArticleService")
+	var article models.Article
+	var comments []models.Comment
+	var aErr error
+	var cErr error
 
-		if errors.Is(err, sql.ErrNoRows) {
-			err = apperrors.NAData.Wrap(err, "no data")
-		} else {
-			err = apperrors.GetDataFailed.Wrap(err, "fail to get data")
+	type gotArticle struct {
+		article models.Article
+		err     error
+	}
+	aCh := make(chan gotArticle)
+	defer close(aCh)
+
+	type gotComments struct {
+		comments []models.Comment
+		err      error
+	}
+	cCh := make(chan gotComments)
+	defer close(cCh)
+
+	go func(ch chan<- gotArticle, db *sql.DB, article models.Article) {
+		article, err := repositories.SelectArticleDetail(db, ID)
+		resArticle := gotArticle{article: article, err: err}
+		ch <- resArticle
+	}(aCh, s.db, article)
+
+	go func(ch chan<- gotComments, db *sql.DB, cooments []models.Comment) {
+		comments, err := repositories.SelectCommentList(db, ID)
+		resComments := gotComments{comments: comments, err: err}
+		ch <- resComments
+	}(cCh, s.db, comments)
+
+	for i := 0; i < 2; i++ {
+		select {
+		case gotArt := <-aCh:
+			article, aErr = gotArt.article, gotArt.err
+		case gotCom := <-cCh:
+			comments, cErr = gotCom.comments, gotCom.err
 		}
-
-		return models.Article{}, err
 	}
 
-	comments, err := repositories.SelectCommentList(s.db, ID)
-	if err != nil {
+	if aErr != nil {
+		fmt.Println("error at SelectArticleDetail in GetArticleService")
+
+		if errors.Is(aErr, sql.ErrNoRows) {
+			aErr = apperrors.NAData.Wrap(aErr, "no data")
+		} else {
+			aErr = apperrors.GetDataFailed.Wrap(aErr, "fail to get data")
+		}
+
+		return models.Article{}, aErr
+	}
+
+	if cErr != nil {
 		fmt.Println("error at SelectCommentList in GetArticleService")
-		err = apperrors.GetDataFailed.Wrap(err, "fail to get data")
-		return models.Article{}, err
+		cErr = apperrors.GetDataFailed.Wrap(cErr, "fail to get data")
+		return models.Article{}, cErr
 	}
 
 	article.CommentList = append(article.CommentList, comments...)
