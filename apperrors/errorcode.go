@@ -11,6 +11,11 @@ const (
 	NoTargetData     ErrCode = "S004"
 	UpdateDataFailed ErrCode = "S005"
 
-	ReqBodyDecodeFailed ErrCode = "S006"
-	BadParameter        ErrCode = "S007"
+	ReqBodyDecodeFailed ErrCode = "R001"
+	BadParameter        ErrCode = "R002"
+
+	RequiredAuthorizationHeader ErrCode = "A001"
+	CannotCreateValidator       ErrCode = "A002"
+	Unauthorized                ErrCode = "A003"
+	NotMatchUser                ErrCode = "A004"
 )

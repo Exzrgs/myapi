@@ -24,7 +24,9 @@ func NewRouter(db *sql.DB) *mux.Router {
 	r.HandleFunc("/article/nice", aCon.PostNiceHandler).Methods(http.MethodPost)
 	r.HandleFunc("/comment", cCon.CommentHandler).Methods(http.MethodPost)
 
+	// 順番が大事
 	r.Use(middlewares.LoggingMiddleWare)
+	r.Use(middlewares.AuthMiddleware)
 
 	return r
 }

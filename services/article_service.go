@@ -3,7 +3,6 @@ package services
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/Exzrgs/myapi/apperrors"
 	"github.com/Exzrgs/myapi/models"
@@ -52,8 +51,6 @@ func (s *MyAppService) GetArticleService(ID int) (models.Article, error) {
 	}
 
 	if aErr != nil {
-		fmt.Println("error at SelectArticleDetail in GetArticleService")
-
 		if errors.Is(aErr, sql.ErrNoRows) {
 			aErr = apperrors.NAData.Wrap(aErr, "no data")
 		} else {
@@ -64,7 +61,6 @@ func (s *MyAppService) GetArticleService(ID int) (models.Article, error) {
 	}
 
 	if cErr != nil {
-		fmt.Println("error at SelectCommentList in GetArticleService")
 		cErr = apperrors.GetDataFailed.Wrap(cErr, "fail to get data")
 		return models.Article{}, cErr
 	}
@@ -77,7 +73,6 @@ func (s *MyAppService) GetArticleService(ID int) (models.Article, error) {
 func (s *MyAppService) PostArticleService(reqArticle models.Article) (models.Article, error) {
 	resArticle, err := repositories.InsertArticle(s.db, reqArticle)
 	if err != nil {
-		fmt.Println("error at InsertArticle in PostArticleService")
 		err = apperrors.InsertDataFailed.Wrap(err, "fail to recode data")
 		return models.Article{}, err
 	}
@@ -88,7 +83,6 @@ func (s *MyAppService) PostArticleService(reqArticle models.Article) (models.Art
 func (s *MyAppService) GetArticleListService(page int) ([]models.Article, error) {
 	articleList, err := repositories.SelectArticleList(s.db, page)
 	if err != nil {
-		fmt.Println("error at SelectArticleList in GetArticleListService")
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get data")
 		return nil, err
 	}
@@ -107,8 +101,6 @@ func (s *MyAppService) PostNiceService(article models.Article) (models.Article, 
 
 	err := repositories.UpdateNiceNum(s.db, article.ID)
 	if err != nil {
-		fmt.Println("error at UpdateNiceNum in PostNiceService")
-
 		if errors.Is(err, sql.ErrNoRows) {
 			err = apperrors.NoTargetData.Wrap(err, "no data")
 		} else {
@@ -120,7 +112,6 @@ func (s *MyAppService) PostNiceService(article models.Article) (models.Article, 
 
 	newArticle, err := repositories.SelectArticleDetail(s.db, article.ID)
 	if err != nil {
-		fmt.Println("error at SelectArticleDetail in PostNiceService")
 		return models.Article{}, err
 	}
 

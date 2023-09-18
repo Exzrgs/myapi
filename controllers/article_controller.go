@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/Exzrgs/myapi/apperrors"
+	"github.com/Exzrgs/myapi/common"
 	"github.com/Exzrgs/myapi/controllers/services"
 	"github.com/Exzrgs/myapi/models"
 	"github.com/gorilla/mux"
@@ -29,13 +30,20 @@ func (c *ArticleController) PostArticleHandler(w http.ResponseWriter, req *http.
 		apperrors.ErrorHandler(w, req, err)
 	}
 
-	resArticle, err := c.service.PostArticleService(reqArticle)
+	authedUserName := common.GetUserName(req.Context())
+	if authedUserName != reqArticle.UserName {
+		err := apperrors.NotMatchUser.Wrap(errors.New("not match authed user and post user"), "invalid parameter")
+		apperrors.ErrorHandler(w, req, err)
+		return
+	}
+
+	article, err := c.service.PostArticleService(reqArticle)
 	if err != nil {
 		apperrors.ErrorHandler(w, req, err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(resArticle)
+	json.NewEncoder(w).Encode(article)
 }
 
 // ブログ記事の一覧を取得
@@ -99,7 +107,6 @@ func (c *ArticleController) PostNiceHandler(w http.ResponseWriter, req *http.Req
 
 	resArticle, err := c.service.PostNiceService(reqArticle)
 	if err != nil {
-		fmt.Println("error at PostNiceService in PostNiceHandler")
 		apperrors.ErrorHandler(w, req, err)
 		return
 	}

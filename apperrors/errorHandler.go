@@ -3,7 +3,10 @@ package apperrors
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
+
+	"github.com/Exzrgs/myapi/common"
 )
 
 func ErrorHandler(w http.ResponseWriter, req *http.Request, err error) {
@@ -16,6 +19,9 @@ func ErrorHandler(w http.ResponseWriter, req *http.Request, err error) {
 		}
 	}
 
+	traceID := common.GetTraceID(req.Context())
+	log.Printf("[%d]error: %s\n", traceID, appErr)
+
 	var statusCode int
 
 	switch appErr.ErrCode {
@@ -23,6 +29,10 @@ func ErrorHandler(w http.ResponseWriter, req *http.Request, err error) {
 		statusCode = http.StatusNotFound
 	case NoTargetData, ReqBodyDecodeFailed, BadParameter:
 		statusCode = http.StatusBadRequest
+	case RequiredAuthorizationHeader, Unauthorized:
+		statusCode = http.StatusUnauthorized
+	case NotMatchUser:
+		statusCode = http.StatusForbidden
 	default:
 		statusCode = http.StatusInternalServerError
 	}

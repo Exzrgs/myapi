@@ -3,6 +3,8 @@ package middlewares
 import (
 	"log"
 	"net/http"
+
+	"github.com/Exzrgs/myapi/common"
 )
 
 type resLoggingWriter struct {
@@ -20,11 +22,15 @@ func (w *resLoggingWriter) WriteHeader(code int) {
 }
 
 func LoggingMiddleWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		traceID := newTraceID()
+		log.Printf("[%d]%s %s\n", traceID, req.RequestURI, req.Method)
+
+		ctx := common.SetTraceID(req.Context(), traceID)
+		req = req.WithContext(ctx)
 		lw := NewLoggingWriter(w)
 
-		log.Println(r.RequestURI, r.Method)
-		next.ServeHTTP(lw, r)
-		log.Printf("response code: %d\n", lw.code)
+		next.ServeHTTP(lw, req)
+		log.Printf("[%d]res: %d\n", traceID, lw.code)
 	})
 }
